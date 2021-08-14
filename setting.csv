@@ -1,0 +1,2 @@
+file_name,graph_title,graph_title_size,horizon_title,horizon_title_size,,horizon_tick_size,vertical_title,vertical_title_size,vertial_tick_size,vertical_range_min,vertical_range_max,legend_place,legend_size,legend_row,figure_size_x,figure_size_y,numbers_of_sample,numbers_of_analysis,xlabel1,xlabel2,xlabel3,xlabel4,xlabel5,xlabel6
+/Users/sakamotolab/PycharmProjects/Python_env/venv/data&result/Other_test.csv,fat,15,normal,Days,13,11,value,13,11,0,200,upper left,16,1,4,3,4,3,0,3,6,9,12,15
