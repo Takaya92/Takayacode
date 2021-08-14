@@ -5,4 +5,4 @@ How to use: 1.[File design tab]: Create a data sheet and fill the sheet with you
 &emsp;&emsp;&emsp;&emsp;&emsp;&ensp;4.Push start button.<br><br>
 Result:[Survival result]: Kaplan-Meier method and log-rank test.<br>
 &emsp;&emsp;&emsp;[Other result]: For 2 samples: Welch's t-test.<br>
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;For more samples: One-Way ANOVA with post-hoc Tukey HSD.
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;For more samples: One-Way ANOVA with post-hoc Tukey HSD.
