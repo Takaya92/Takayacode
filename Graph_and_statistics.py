@@ -101,9 +101,9 @@ def multiple_comparison_test(combined_all_sample_data, sample_names_and_len):
 
 # ↑↑↑↑↑↑↑↑class,def"ここまで,PysimpleGUI"ここから"↓↓↓↓↓↓↓↓#
 radio_dic = {"-SURVIVAL-": "Survival_rate",
-             "-FAT-": "Fat_accumulation\nBody_length",
-             "-AGINGBAR-": "Aging_bar",
-             "-AGINGLINE-": "Aging_line"}
+             "-FAT-": "Only_once",
+             "-AGINGBAR-": "Lapse_bar",
+             "-AGINGLINE-": "Lapse_line"}
 tab1_layout = [
     [sg.Text("")],
     [sg.Text("[ For survival ]"), sg.Text(":寿命解析用シート")],
@@ -456,7 +456,7 @@ while True:
             list_sample = ndarray_sample.tolist()
             sample_name_list.extend(list_sample)
         df_new_survival_file['sample'] = sample_name_list
-        exec('path_new_survival_file = path / "data&result/{0}.csv"'.format(values["-FILENAMESURVIVAL-"]))
+        exec('path_new_survival_file = path / "{0}.csv"'.format(values["-FILENAMESURVIVAL-"]))
         df_new_survival_file.to_csv(path_new_survival_file, index=False, na_rep='')
 
         values_list1 = np.array([int(values["-NUMBERSAMPLETYPES-"]),
@@ -489,7 +489,7 @@ while True:
                 exec('other_sample_list.append("N{0}sample{1}")'.format(m + 1, n + 1))
         df_new_other_file = pd.DataFrame(columns=other_sample_list)
         df_new_other_file['size'] = range(1, 200 + 1)
-        exec('path_new_other_file = path / "data&result/{0}.csv"'.format(values["-FILENAMEOTHER-"]))
+        exec('path_new_other_file = path / "{0}.csv"'.format(values["-FILENAMEOTHER-"]))
         df_new_other_file.to_csv(path_new_other_file, index=False,
                                  na_rep='')
 
@@ -674,7 +674,7 @@ if values["-SURVIVAL-"] == True:
 
     figure = openpyxl.drawing.image.Image(path / "figure.png")
     figure_statistics_sheet.add_image(figure, 'H1')
-    wb_data.save(path / "data&result/{0}.xlsx".format(os.path.basename(values["-NAMEOFFILE-"])))
+    wb_data.save(path / "{0}.xlsx".format(os.path.basename(values["-NAMEOFFILE-"])))
     plt.show()
     exit()  # #
 # ↑↑↑↑↑↑↑↑Survival"ここまで", Body_length,Fat_accumulationここから"↓↓↓↓↓↓↓↓#
@@ -733,7 +733,7 @@ if  values["-FAT-"] == True:
         multiple_comparison_test(combined_all_sample_data, sample_names_and_len)
     figure = openpyxl.drawing.image.Image(path / "figure.png")
     figure_statistics_sheet.add_image(figure, 'H1')
-    wb_data.save(path / "data&result/{0}.xlsx".format(os.path.basename(values["-NAMEOFFILE-"])))
+    wb_data.save(path / "{0}.xlsx".format(os.path.basename(values["-NAMEOFFILE-"])))
     plt.show()
     exit()
 if values["-AGINGBAR-"] == True:
@@ -844,7 +844,7 @@ if values["-AGINGBAR-"] == True:
             exec("multiple_comparison_test(combined_all_sample_data{0}, sample_names_and_len{0})".format(m + 1))
     figure = openpyxl.drawing.image.Image(path / "figure.png")
     figure_statistics_sheet.add_image(figure, 'H1')
-    wb_data.save(path / "data&result/{0}.xlsx".format(os.path.basename(values["-NAMEOFFILE-"])))
+    wb_data.save(path / "{0}.xlsx".format(os.path.basename(values["-NAMEOFFILE-"])))
     plt.show()
     exit()
 if values["-AGINGLINE-"] == True:
@@ -939,7 +939,7 @@ if values["-AGINGLINE-"] == True:
             exec("multiple_comparison_test(combined_all_sample_data{0}, sample_names_and_len{0})".format(m + 1))
     figure = openpyxl.drawing.image.Image(path / "figure.png")
     figure_statistics_sheet.add_image(figure, 'H1')
-    wb_data.save(path / "data&result/{0}.xlsx".format(os.path.basename(values["-NAMEOFFILE-"])))
+    wb_data.save(path / "{0}.xlsx".format(os.path.basename(values["-NAMEOFFILE-"])))
     plt.show()
     exit()
 exit()
