@@ -46,29 +46,38 @@ class SampleInfo:
         return self.marker
 
     def return_relative(self, adjust_data):
-        relative_value = self.data_list / np.mean(adjust_data) * 100
+        if values["-ROWDATA-"]==True:
+            relative_value = self.data_list
+        else:
+            relative_value = self.data_list / np.mean(adjust_data) * 100
         return relative_value
 
     def simple_bar_cal(self, adjust_data):
-        simple_bar_relative = np.mean(self.data_list) / np.mean(adjust_data) * 100
-        simple_bar_sem = np.std(self.data_list) / np.sqrt(
-            len(self.data_list)) / np.mean(adjust_data) * 100  # adjust_data=引数で補正and標準誤差SEM
+        if values["-ROWDATA-"]==True:
+            simple_bar_relative = np.mean(self.data_list)
+            simple_bar_sem = np.std(self.data_list) / np.sqrt(len(self.data_list))
+        else:
+            simple_bar_relative = np.mean(self.data_list) / np.mean(adjust_data) * 100
+            simple_bar_sem = np.std(self.data_list) / np.sqrt(
+                len(self.data_list)) / np.mean(adjust_data) * 100  # adjust_data=引数で補正and標準誤差SEM
         ax.bar(self.name, simple_bar_relative, edgecolor="k", color=self.color, align="center", label=self.name,
-               yerr=simple_bar_sem, ecolor="k", capsize=2, hatch=self.style)
+                   yerr=simple_bar_sem, ecolor="k", capsize=2, hatch=self.style)
         xtickslist.append(self.name)
 
     def multi_bar_cal_relative(self, adjust_data):
-        multi_bar_relative = np.mean(self.data_list) / np.mean(adjust_data) * 100
+        if values["-ROWDATA-"] == True:
+            multi_bar_relative = np.mean(self.data_list)
+        else:
+            multi_bar_relative = np.mean(self.data_list) / np.mean(adjust_data) * 100
         return multi_bar_relative
 
     def multi_bar_cal_sem(self, adjust_data):
-        multi_bar_sem = np.std(self.data_list) / np.sqrt(
-            len(self.data_list)) / np.mean(adjust_data) * 100  # adjust_data=引数で補正and標準誤差SEM
+        if values["-ROWDATA-"] == True:
+            multi_bar_sem = np.std(self.data_list) / np.sqrt(len(self.data_list))
+        else:
+            multi_bar_sem = np.std(self.data_list) / np.sqrt(
+                len(self.data_list)) / np.mean(adjust_data) * 100  # adjust_data=引数で補正and標準誤差SEM
         return multi_bar_sem
-
-    def multi_bar_label_x(self, sample_name_number):
-        sample_name = self.name.format(sample_name_number)
-
 
 def t_test(s1, s2, n):
     t, p = st.ttest_ind(s1, s2, equal_var=False)
@@ -101,11 +110,12 @@ def multiple_comparison_test(combined_all_sample_data, sample_names_and_len):
 
 # ↑↑↑↑↑↑↑↑class,def"ここまで,PysimpleGUI"ここから"↓↓↓↓↓↓↓↓#
 radio_dic = {"-SURVIVAL-": "Survival_rate",
-             "-FAT-": "Only_once",
-             "-AGINGBAR-": "Lapse_bar",
-             "-AGINGLINE-": "Lapse_line"}
+             "-FAT-": "Fat_accumulation\nBody_length",
+             "-AGINGBAR-": "Aging_bar",
+             "-AGINGLINE-": "Aging_line"}
 tab1_layout = [
-    [sg.Text("")],
+    [sg.Button("How to design file", key="-HOWDESIGNFILE-"), sg.Text(":データシート入力方法  "),
+    sg.Button("Out put of results", key="-OUTPUTRESULTS-"), sg.Text(":結果の出力について  ")],
     [sg.Text("[ For survival ]"), sg.Text(":寿命解析用シート")],
     [sg.Text("Number of sample types:"),
      sg.Input(default_text=file_file[1, 0], key="-NUMBERSAMPLETYPES-",
@@ -177,7 +187,7 @@ tab2_layout = [
     [sg.Text("Select analysis:")],
     [sg.Radio(item[1], key=item[0], group_id='statistic') for item in
      radio_dic.items()],
-    #[sg.Checkbox("Use Row data", default=False,key="-ROWDATA-"), sg.Text(":生データを使う")],
+    [sg.Checkbox("Use Row data", default=False,key="-ROWDATA-"), sg.Text(":生データを使う")],
     [sg.Text("Graph title:"),
      sg.Input(default_text=setting_file[1, 1], key="-GRAPHTITLE-",
               size=(30, 1))],
@@ -449,14 +459,14 @@ while True:
         df_new_survival_file = pd.DataFrame(columns=['number', 'sample', 'time', 'death'])
         df_new_survival_file['number'] = range(1, int(values["-NUMBERSAMPLETYPES-"]) * int(
             values["-NUMBERSAMPLESIZE-"]) + 1)
-        df_new_survival_file['death'] = np.repeat(True, int(values["-NUMBERSAMPLETYPES-"]) * int(
+        df_new_survival_file['death'] = np.repeat("Death", int(values["-NUMBERSAMPLETYPES-"]) * int(
             values["-NUMBERSAMPLESIZE-"]))
         for n in range(int(values["-NUMBERSAMPLETYPES-"])):
             exec('ndarray_sample= np.repeat(values["-SAMPLE{0}-"], int(values["-NUMBERSAMPLESIZE-"]))'.format(n + 1))
             list_sample = ndarray_sample.tolist()
             sample_name_list.extend(list_sample)
         df_new_survival_file['sample'] = sample_name_list
-        exec('path_new_survival_file = path / "{0}.csv"'.format(values["-FILENAMESURVIVAL-"]))
+        exec('path_new_survival_file = path / "data&result/{0}.csv"'.format(values["-FILENAMESURVIVAL-"]))
         df_new_survival_file.to_csv(path_new_survival_file, index=False, na_rep='')
 
         values_list1 = np.array([int(values["-NUMBERSAMPLETYPES-"]),
@@ -489,7 +499,7 @@ while True:
                 exec('other_sample_list.append("N{0}sample{1}")'.format(m + 1, n + 1))
         df_new_other_file = pd.DataFrame(columns=other_sample_list)
         df_new_other_file['size'] = range(1, 200 + 1)
-        exec('path_new_other_file = path / "{0}.csv"'.format(values["-FILENAMEOTHER-"]))
+        exec('path_new_other_file = path / "data&result/{0}.csv"'.format(values["-FILENAMEOTHER-"]))
         df_new_other_file.to_csv(path_new_other_file, index=False,
                                  na_rep='')
 
@@ -514,6 +524,14 @@ while True:
         file_new = np.block([[delete_file_file], [values_list1]])
         df_file = pd.DataFrame(data=file_new)
         df_file.to_csv(path_file, index=False, header=False)
+        continue
+    if event == "-HOWDESIGNFILE-":
+        img = Image.open(path / "File_design.png")
+        img.show()
+        continue
+    if event =="-OUTPUTRESULTS-":
+        img = Image.open(path / "Results.png")
+        img.show()
         continue
     if event == "-COLORSAMPLE-":
         img = Image.open(path / "color_sample.png")
@@ -618,6 +636,7 @@ if values["-SURVIVAL-"] == True:
         exec("sample_name_list.append(N1_S{0}.return_name())".format(n + 1))
     life_file = values["-NAMEOFFILE-"]
     df_life = pd.read_csv(life_file, encoding='cp932', index_col="number")
+    df_life.replace({'Death':bool(True), 'Miss': bool(False)},inplace=True)
     ax = None
     num = 0
     for sample_name, group_data in df_life.groupby("sample"):
@@ -653,7 +672,7 @@ if values["-SURVIVAL-"] == True:
     wb_data.create_sheet('figure&statistics', 0)
     figure_statistics_sheet = wb_data['figure&statistics']
 
-    for n in range(int(values["-NUMBERSSAMPLE-"])):
+    for n in range(int(values["-NUMBERSSAMPLE-"])):                 #統計検定始まり
         if n + 1 == int(values["-NUMBERSSAMPLE-"]):
             break
         exec('sample_A = N1_S{0}.return_name()'.format(n + 1))
@@ -674,7 +693,7 @@ if values["-SURVIVAL-"] == True:
 
     figure = openpyxl.drawing.image.Image(path / "figure.png")
     figure_statistics_sheet.add_image(figure, 'H1')
-    wb_data.save(path / "{0}.xlsx".format(os.path.basename(values["-NAMEOFFILE-"])))
+    wb_data.save(path / "data&result/{0}.xlsx".format(os.path.basename(values["-NAMEOFFILE-"])))
     plt.show()
     exit()  # #
 # ↑↑↑↑↑↑↑↑Survival"ここまで", Body_length,Fat_accumulationここから"↓↓↓↓↓↓↓↓#
@@ -716,7 +735,7 @@ if  values["-FAT-"] == True:
     wb_data.create_sheet('figure&statistics', 0)
     figure_statistics_sheet = wb_data['figure&statistics']
 
-    if int(values["-NUMBERSSAMPLE-"]) == 2:
+    if int(values["-NUMBERSSAMPLE-"]) == 2:                 #統計検定始まり
         t_test(N1_S1.return_relative(N1_S1.data_list), N1_S2.return_relative(N1_S1.data_list), 1)
 
     if int(values["-NUMBERSSAMPLE-"]) > 2:
@@ -733,7 +752,7 @@ if  values["-FAT-"] == True:
         multiple_comparison_test(combined_all_sample_data, sample_names_and_len)
     figure = openpyxl.drawing.image.Image(path / "figure.png")
     figure_statistics_sheet.add_image(figure, 'H1')
-    wb_data.save(path / "{0}.xlsx".format(os.path.basename(values["-NAMEOFFILE-"])))
+    wb_data.save(path / "data&result/{0}.xlsx".format(os.path.basename(values["-NAMEOFFILE-"])))
     plt.show()
     exit()
 if values["-AGINGBAR-"] == True:
@@ -825,7 +844,7 @@ if values["-AGINGBAR-"] == True:
                 "t_test(N{0}_S1.return_relative(N1_S1.data_list), N{0}_S2.return_relative(N1_S2.data_list), {0})".format(
                     n + 1))
 
-    if int(values["-NUMBERSSAMPLE-"]) > 2:
+    if int(values["-NUMBERSSAMPLE-"]) > 2:                  #統計検定始まり
         for m in range(int(values["-NUMBERSANALYSIS-"])):
             exec("anova_list{0} = []".format(m + 1))
             exec("combined_all_sample_data{0} = []".format(m + 1))
@@ -844,7 +863,7 @@ if values["-AGINGBAR-"] == True:
             exec("multiple_comparison_test(combined_all_sample_data{0}, sample_names_and_len{0})".format(m + 1))
     figure = openpyxl.drawing.image.Image(path / "figure.png")
     figure_statistics_sheet.add_image(figure, 'H1')
-    wb_data.save(path / "{0}.xlsx".format(os.path.basename(values["-NAMEOFFILE-"])))
+    wb_data.save(path / "data&result/{0}.xlsx".format(os.path.basename(values["-NAMEOFFILE-"])))
     plt.show()
     exit()
 if values["-AGINGLINE-"] == True:
@@ -915,7 +934,7 @@ if values["-AGINGLINE-"] == True:
     wb_data.create_sheet('figure&statistics', 0)
     figure_statistics_sheet = wb_data['figure&statistics']
 
-    if int(values["-NUMBERSSAMPLE-"]) == 2:
+    if int(values["-NUMBERSSAMPLE-"]) == 2:                     #統計検定始まり
         for n in range(int(values["-NUMBERSANALYSIS-"])):
             exec(
                 "t_test(N{0}_S1.return_relative(N1_S1.data_list), N{0}_S2.return_relative(N1_S2.data_list), {0})".format(
@@ -939,7 +958,7 @@ if values["-AGINGLINE-"] == True:
             exec("multiple_comparison_test(combined_all_sample_data{0}, sample_names_and_len{0})".format(m + 1))
     figure = openpyxl.drawing.image.Image(path / "figure.png")
     figure_statistics_sheet.add_image(figure, 'H1')
-    wb_data.save(path / "{0}.xlsx".format(os.path.basename(values["-NAMEOFFILE-"])))
+    wb_data.save(path / "data&result/{0}.xlsx".format(os.path.basename(values["-NAMEOFFILE-"])))
     plt.show()
     exit()
 exit()
