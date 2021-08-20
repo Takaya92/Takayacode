@@ -496,7 +496,7 @@ while True:
         for m in range(int(values["-NUMBERANALYSIS2-"])):
             other_sample_list.append('size')
             for n in range(int(values["-NUMBERSAMPLETYPES2-"])):
-                exec('other_sample_list.append("N{0}sample{1}")'.format(m + 1, n + 1))
+                exec('other_sample_list.append("N{0}Sample{1}")'.format(m + 1, n + 1))
         df_new_other_file = pd.DataFrame(columns=other_sample_list)
         df_new_other_file['size'] = range(1, 200 + 1)
         exec('path_new_other_file = path / "data&result/{0}.csv"'.format(values["-FILENAMEOTHER-"]))
