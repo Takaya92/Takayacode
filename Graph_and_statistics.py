@@ -693,7 +693,7 @@ if values["-SURVIVAL-"] == True:
 
     figure = openpyxl.drawing.image.Image(path / "figure.png")
     figure_statistics_sheet.add_image(figure, 'H1')
-    wb_data.save(path / "data&result/{0}.xlsx".format(os.path.basename(values["-NAMEOFFILE-"])))
+    wb_data.save(path / "{0}.xlsx".format(os.path.basename(values["-NAMEOFFILE-"]).split(".")[-2]))
     plt.show()
     exit()  # #
 # ↑↑↑↑↑↑↑↑Survival"ここまで", Body_length,Fat_accumulationここから"↓↓↓↓↓↓↓↓#
@@ -752,7 +752,7 @@ if  values["-FAT-"] == True:
         multiple_comparison_test(combined_all_sample_data, sample_names_and_len)
     figure = openpyxl.drawing.image.Image(path / "figure.png")
     figure_statistics_sheet.add_image(figure, 'H1')
-    wb_data.save(path / "data&result/{0}.xlsx".format(os.path.basename(values["-NAMEOFFILE-"])))
+    wb_data.save(path / "{0}.xlsx".format(os.path.basename(values["-NAMEOFFILE-"]).split(".")[-2]))
     plt.show()
     exit()
 if values["-AGINGBAR-"] == True:
@@ -863,7 +863,7 @@ if values["-AGINGBAR-"] == True:
             exec("multiple_comparison_test(combined_all_sample_data{0}, sample_names_and_len{0})".format(m + 1))
     figure = openpyxl.drawing.image.Image(path / "figure.png")
     figure_statistics_sheet.add_image(figure, 'H1')
-    wb_data.save(path / "data&result/{0}.xlsx".format(os.path.basename(values["-NAMEOFFILE-"])))
+    wb_data.save(path / "{0}.xlsx".format(os.path.basename(values["-NAMEOFFILE-"]).split(".")[-2]))
     plt.show()
     exit()
 if values["-AGINGLINE-"] == True:
@@ -958,7 +958,7 @@ if values["-AGINGLINE-"] == True:
             exec("multiple_comparison_test(combined_all_sample_data{0}, sample_names_and_len{0})".format(m + 1))
     figure = openpyxl.drawing.image.Image(path / "figure.png")
     figure_statistics_sheet.add_image(figure, 'H1')
-    wb_data.save(path / "data&result/{0}.xlsx".format(os.path.basename(values["-NAMEOFFILE-"])))
+    wb_data.save(path / "{0}.xlsx".format(os.path.basename(values["-NAMEOFFILE-"]).split(".")[-2]))
     plt.show()
     exit()
 exit()
