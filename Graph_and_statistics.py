@@ -327,7 +327,7 @@ tab2_layout = [
 
 ]
 
-#tab3のフレーム↓
+#tab3_table1のフレーム↓
 
 tab3_frame1 = sg.Frame("",[
     [sg.Text("Name:"),
@@ -539,7 +539,8 @@ tab3_frame15 = sg.Frame("",[
      sg.Input(default_text=sample_file[1, 59], key="-SAMPLEMARKER15-",
               size=(10, 1))]
 ], border_width=1, relief=sg.RELIEF_SUNKEN)
-#tab3のフレーム↑
+#tab3_table1のフレーム↑
+#tab3_table1↓
 tab3_table1 = sg.Frame("",[
 [sg.Text("Sample 01:"), tab3_frame1],
 [sg.Text("Sample 02:"), tab3_frame2],
@@ -557,7 +558,7 @@ tab3_table1 = sg.Frame("",[
 [sg.Text("Sample 14:"), tab3_frame14],
 [sg.Text("Sample 15:"), tab3_frame15]
 ], border_width=1, relief=sg.RELIEF_SUNKEN)
-
+#tab3_table1↑
 tab3_layout = [
     [sg.Text("")],
     [sg.Button("COLOR SAMPLE", key="-COLORSAMPLE-"), sg.Text(":色見本  "),
