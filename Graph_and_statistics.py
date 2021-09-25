@@ -393,7 +393,7 @@ tab3_frame5 = sg.Frame("",[
      sg.Input(default_text=sample_file[1, 17], key="-SAMPLECOLOR5-",
               size=(10, 1)),
      sg.Text("Style:"),
-     sg.Input(default_text=sample_file[1, 8], key="-SAMPLESTYLE5-",
+     sg.Input(default_text=sample_file[1, 18], key="-SAMPLESTYLE5-",
               size=(10, 1)),
      sg.Text("Marker:"),
      sg.Input(default_text=sample_file[1, 19], key="-SAMPLEMARKER5-",
