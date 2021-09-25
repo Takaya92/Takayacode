@@ -322,9 +322,7 @@ tab2_layout = [
     [sg.Text("#Horizon:    \n横軸"), tab2_frame3_horizon, sg.Text("  #Vertical:\n  縦軸"),
      tab2_frame4_vertical],
     [sg.Text("#Legend:    \n凡例"), tab2_frame5_legend],
-    [sg.Text("#Options for\n kinetics:\n寿命用"), tab2_frame6_kinetics],
-
-
+    [sg.Text("#Options for\n kinetics:\nKinetics用"), tab2_frame6_kinetics],
 ]
 
 #tab3_table1のフレーム↓
