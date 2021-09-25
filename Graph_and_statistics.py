@@ -1143,6 +1143,7 @@ if values["-KINETICSLINE-"] == True:
     figure = openpyxl.drawing.image.Image(path / "figure.png")
     figure_statistics_sheet.add_image(figure, 'H1')
     wb_data.save(path_dir / "{0}.xlsx".format(os.path.basename(values["-NAMEOFFILE-"]).split(".")[-2]))
+
     plt.show()
     exit()
 exit()
