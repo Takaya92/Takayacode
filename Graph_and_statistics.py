@@ -22,7 +22,6 @@ setting_file = np.genfromtxt("setting.csv", delimiter=",", dtype='str')
 path_sample = path / "sample.csv"
 sample_file = np.genfromtxt("sample.csv", delimiter=",", dtype='str')
 
-
 # ↓↓↓↓↓↓↓↓class,def"ここから"↓↓↓↓↓↓↓↓#
 @dataclass
 class SampleInfo:
@@ -90,14 +89,12 @@ def t_test(s1, s2, n):
     exec("figure_statistics_sheet.append(t_test_list{0})".format(n))
     exec("figure_statistics_sheet.append({0})".format(empty_list))
 
-
 def one_way_anova(n, *args):
     print("\n{0}回目実験結果".format(n))
     f, p = st.f_oneway(*args)
     print("One-Way-ANOVA\n一元配置分散分析の", "F値=", f, "p値=", p)
     exec("one_way_list{0}=['{0} th analysis:  One-Way-ANOVA  p-value=','','','',{1:.10f}]".format(n, p))
     exec("figure_statistics_sheet.append(one_way_list{0})".format(n))
-
 
 def multiple_comparison_test(combined_all_sample_data, sample_names_and_len):
     empty_list = []
@@ -109,6 +106,64 @@ def multiple_comparison_test(combined_all_sample_data, sample_names_and_len):
         exec("figure_statistics_sheet.append(df_tukey.loc[{0}].tolist())".format(n))
     exec("figure_statistics_sheet.append({0})".format(empty_list))
 
+def graph_config():
+    if values["-SIMPLEBAR-"] == True or values["-KINETICSBAR-"] == True:     # Barグラフ用legend
+        ax.legend(loc=values["-LEGENDPLACE-"],
+                  fontsize=int(values["-LEGENDSIZE-"]),
+                  handlelength=0.75, handletextpad=0.1, labelspacing=0.2,
+                  borderpad=0.5,
+                  ncol=int(values["-LEGENDROWS-"]), bbox_to_anchor=(1, 1),
+                  shadow=False,
+                  frameon=False)
+    elif values["-KINETICSLINE-"] == True:  # Kineticsline用legend
+        ax.legend(handles, labels, loc=values["-LEGENDPLACE-"],
+                  fontsize=int(values["-LEGENDSIZE-"]), handlelength=2.0,
+                  handletextpad=0.1, labelspacing=0.1,
+                  ncol=int(values["-LEGENDROWS-"]), bbox_to_anchor=(1, 1),
+                  borderpad=0.5, shadow=False, frameon=False)
+    elif values["-SURVIVAL-"] == True:  # Survival用legend
+        ax.legend(sample_name_list, loc=values["-LEGENDPLACE-"],
+                  fontsize=int(values["-LEGENDSIZE-"]), handlelength=0.8,
+                  handletextpad=0.1, labelspacing=0.1,
+                  ncol=int(values["-LEGENDROWS-"]),
+                  bbox_to_anchor=(1, 1), borderpad=0.5, shadow=False,
+                  frameon=False)
+    ax.set_title(values["-GRAPHTITLE-"],
+                 fontdict={"fontsize": int(values["-GRAPHTITLESIZE-"]),
+                           "fontweight": "bold", "fontstyle": values["-GRAPHTITLESTYLE-"]})
+    if values["-SURVIVAL-"] == False: ax.set_xticks(xtickslist) #Survival以外の横軸
+    ax.set_xlabel(values["-HORIZONTITLE-"], labelpad=None,
+                  fontdict={"fontsize": values["-HORIZONTITLESIZE-"], "fontweight": "bold"})
+    ax.set_ylabel(values["-VERTICALTITLE-"], labelpad=None,
+                  fontdict={"fontsize": int(values["-VERTICALTITLESIZE-"]),
+                            "fontweight": "bold"})
+    if values["-SURVIVAL-"] == False:
+        ax.set_xticklabels(xtickslist, fontsize=int(values["-HORIZONTICKSIZE-"]),
+                       fontweight='bold')
+        if values["-KINETICSBAR-"] == True or values["-KINETICSLINE-"] == True:     # Kinetics用,pltで後付け
+            plt.xticks(xtickslist, label_x)
+    plt.setp(ax.get_yticklabels(), fontsize=values["-VERTICALTICKSIZE-"], fontweight="bold")
+    plt.rcParams["font.family"] = 'Arial'
+    if values["-SURVIVAL-"] == False:
+        ax.set_ylim([int(values["-VERTICALRANGEMIN-"]), int(values["-VERTICALRANGEMAX-"])])
+    else:
+        ax.set_ylim(0, 1)
+        plt.xticks(fontsize=int(values["-HORIZONTICKSIZE-"]),fontweight='bold')  # pltで貼付修正
+    ax.spines['right'].set(visible=False)
+    ax.spines['top'].set(visible=False)
+    fig.savefig(path / "figure.png", format="png", bbox_inches="tight",
+                dpi='figure')
+    wb_data = openpyxl.Workbook()
+    wb_data.create_sheet('figure&statistics', 0)
+    figure_statistics_sheet = wb_data['figure&statistics']
+    return wb_data, figure_statistics_sheet
+
+def save_and_plot_fig():
+    figure = openpyxl.drawing.image.Image(path / "figure.png")
+    figure_statistics_sheet.add_image(figure, 'H1')
+    wb_data.save(path_dir / "{0}.xlsx".format(os.path.basename(values["-NAMEOFFILE-"]).split(".")[-2]))
+    plt.show()
+    exit()
 
 # ↑↑↑↑↑↑↑↑class,def"ここまで,PysimpleGUI"ここから"↓↓↓↓↓↓↓↓#
 sg.theme("Darkblue12")
@@ -747,8 +802,10 @@ fig = plt.figure(
 ax = fig.add_subplot(1, 1, 1)
 df_data = pd.read_csv(values["-NAMEOFFILE-"])
 # ↑↑↑↑↑↑↑↑Figure"共通設定ここまで","グラフ作成ここから"↓↓↓↓↓↓↓↓#
-# ↓↓↓↓↓↓↓↓Survival"ここから"↓↓↓↓↓↓↓↓#
 sample_name_list = []
+xtickslist = []
+label_x = []
+# ↓↓↓↓↓↓↓↓Survival"ここから"↓↓↓↓↓↓↓↓#
 if values["-SURVIVAL-"] == True:
     for n in range(int(values["-NUMBERSSAMPLE-"])):
         exec(
@@ -770,30 +827,9 @@ if values["-SURVIVAL-"] == True:
             'ax=kmf.plot(ax=ax, ci_show=False, linewidth=3, color = values["-SAMPLECOLOR{0}-"], '
             'style = values["-SAMPLESTYLE{0}-"], marker=values["-SAMPLEMARKER{0}-"])'.format(
                 num))
-    ax.legend(sample_name_list, loc=values["-LEGENDPLACE-"], fontsize=int(values["-LEGENDSIZE-"]), handlelength=0.8,
-              handletextpad=0.1, labelspacing=0.1, ncol=int(values["-LEGENDROWS-"]),
-              bbox_to_anchor=(1, 1), borderpad=0.5, shadow=False, frameon=False)  # legend
-    ax.set_title(values["-GRAPHTITLE-"],
-                 fontdict={"fontsize": int(values["-GRAPHTITLESIZE-"]),
-                           "fontweight": "bold", "fontstyle": values["-GRAPHTITLESTYLE-"]})
-    ax.set_xlabel(values["-HORIZONTITLE-"], labelpad=None,
-                  fontdict={"fontsize": values["-HORIZONTITLESIZE-"], "fontweight": "bold"})
 
-    ax.set_ylabel(values["-VERTICALTITLE-"], labelpad=None,
-                  fontdict={"fontsize": int(values["-VERTICALTITLESIZE-"]),
-                            "fontweight": "bold"})
-    plt.setp(ax.get_yticklabels(), fontsize=values["-VERTICALTICKSIZE-"],
-             fontweight='bold')
-    ax.set_ylim(0, 1)
-    ax.spines['right'].set(visible=False)
-    ax.spines['top'].set(visible=False)
-    plt.xticks(fontsize=int(values["-HORIZONTICKSIZE-"]), fontweight='bold')  # pltで貼付修正
-    fig.savefig(path / "figure.png", format="png", bbox_inches="tight", dpi='figure')
-
-    wb_data = openpyxl.Workbook()
-    wb_data.create_sheet('figure&statistics', 0)
-    figure_statistics_sheet = wb_data['figure&statistics']
-
+    wb_data, figure_statistics_sheet = graph_config() # グラフ共通設定
+# Survival統計検定始まり↓
     for n in range(int(values["-NUMBERSSAMPLE-"])):                 #統計検定始まり
         if n + 1 == int(values["-NUMBERSSAMPLE-"]):
             break
@@ -812,15 +848,10 @@ if values["-SURVIVAL-"] == True:
             exec(
                 "log_rank_list{0}=['Log_rank({1} vs {2}): p-value=','','',{3:.10f}]".format(m, S1, S2, results.p_value))
             exec("figure_statistics_sheet.append(log_rank_list{0})".format(m))
-
-    figure = openpyxl.drawing.image.Image(path / "figure.png")
-    figure_statistics_sheet.add_image(figure, 'H1')
-    wb_data.save(path_dir / "{0}.xlsx".format(os.path.basename(values["-NAMEOFFILE-"]).split(".")[-2]))
-    plt.show()
-    exit()  # #
-# ↑↑↑↑↑↑↑↑Survival"ここまで", Body_length,Fat_accumulationここから"↓↓↓↓↓↓↓↓#
+# Survival統計検定終わり↑
+    save_and_plot_fig()
+# ↑↑↑↑↑↑↑↑Survival"ここまで", Simplebar,Kineticsここから"↓↓↓↓↓↓↓↓#
 if  values["-SIMPLEBAR-"] == True:
-    xtickslist = []
     for n in range(int(values["-NUMBERSSAMPLE-"])):
         exec(
             'N1_S{0} = SampleInfo(values["-SAMPLENAME{0}-"], values["-SAMPLECOLOR{0}-"],'
@@ -828,38 +859,10 @@ if  values["-SIMPLEBAR-"] == True:
                 n + 1))
         exec('N1_S{0}.simple_bar_cal(N1_S1.data_list)'.format(n + 1))
 
-    ax.legend(loc=values["-LEGENDPLACE-"], fontsize=int(values["-LEGENDSIZE-"]),
-              handlelength=0.75, handletextpad=0.1, labelspacing=0.2,
-              borderpad=0.5,
-              ncol=int(values["-LEGENDROWS-"]), bbox_to_anchor=(1, 1),
-              shadow=False,
-              frameon=False)
-    ax.set_title(values["-GRAPHTITLE-"],
-                 fontdict={"fontsize": int(values["-GRAPHTITLESIZE-"]),
-                           "fontweight": "bold", "fontstyle": values["-GRAPHTITLESTYLE-"]})
-    ax.set_xticks(xtickslist)
-    ax.set_xlabel(values["-HORIZONTITLE-"], labelpad=None,
-                  fontdict={"fontsize": values["-HORIZONTITLESIZE-"], "fontweight": "bold"})
-    ax.set_xticklabels(xtickslist, fontsize=int(values["-HORIZONTICKSIZE-"]),
-                       fontweight='bold')
-    ax.set_ylabel(values["-VERTICALTITLE-"], labelpad=None,
-                  fontdict={"fontsize": int(values["-VERTICALTITLESIZE-"]),
-                            "fontweight": "bold"})
-    plt.setp(ax.get_yticklabels(), fontsize=values["-VERTICALTICKSIZE-"],
-             fontweight='bold')
-    ax.set_ylim([int(values["-VERTICALRANGEMIN-"]), int(values["-VERTICALRANGEMAX-"])])
-    ax.spines['right'].set(visible=False)
-    ax.spines['top'].set(visible=False)
-    fig.savefig(path / "figure.png", format="png", bbox_inches="tight",
-                dpi='figure')
-
-    wb_data = openpyxl.Workbook()
-    wb_data.create_sheet('figure&statistics', 0)
-    figure_statistics_sheet = wb_data['figure&statistics']
-
-    if int(values["-NUMBERSSAMPLE-"]) == 2:                 #統計検定始まり
+    wb_data, figure_statistics_sheet = graph_config() # グラフ共通設定
+# Simple_bar統計検定始まり↓
+    if int(values["-NUMBERSSAMPLE-"]) == 2:
         t_test(N1_S1.return_relative(N1_S1.data_list), N1_S2.return_relative(N1_S1.data_list), 1)
-
     if int(values["-NUMBERSSAMPLE-"]) > 2:
         anova_list = []
         combined_all_sample_data = []
@@ -872,14 +875,9 @@ if  values["-SIMPLEBAR-"] == True:
             exec('sample_names_and_len = np.concatenate([sample_names_and_len, name_and_len{0}])'.format(n + 1))
         one_way_anova(1, *anova_list)
         multiple_comparison_test(combined_all_sample_data, sample_names_and_len)
-    figure = openpyxl.drawing.image.Image(path / "figure.png")
-    figure_statistics_sheet.add_image(figure, 'H1')
-    wb_data.save(path_dir / "{0}.xlsx".format(os.path.basename(values["-NAMEOFFILE-"]).split(".")[-2]))
-    plt.show()
-    exit()
+# Simple_bar統計検定終わり↑
+    save_and_plot_fig()
 if values["-KINETICSBAR-"] == True:
-    xtickslist = []
-    label_x = []
     for n in range(int(values["-NUMBERSANALYSIS-"])):
         exec('label_x.append(values["-XLABEL{0}-"])'.format(n + 1))
     for n in range(int(values["-NUMBERSSAMPLE-"])):
@@ -929,12 +927,6 @@ if values["-KINETICSBAR-"] == True:
             exec(
                 'ax.bar(x_S{0}, y_S{0}, edgecolor="k", color=N1_S{0}.return_color(), width=0.1, label=N1_S{0}.return_name(), align="center", yerr=errorS{0},ecolor="k", capsize=2, hatch=N1_S{0}.return_style())'.format(
                     n + 1))
-    ax.legend(loc=values["-LEGENDPLACE-"], fontsize=int(values["-LEGENDSIZE-"]),
-              handlelength=0.75, handletextpad=0.1, labelspacing=0.2,
-              borderpad=0.5,
-              ncol=int(values["-LEGENDROWS-"]), bbox_to_anchor=(1, 1),
-              shadow=False,
-              frameon=False)
     if int(values["-NUMBERSSAMPLE-"]) <= 5:
         N1 = int(values["-NUMBERSSAMPLE-"]) - 1
         N2 = N1 / 10
@@ -947,40 +939,14 @@ if values["-KINETICSBAR-"] == True:
         for n in range(int(values["-NUMBERSANALYSIS-"])):
             exec("xtickslist.append({0}+N3)".format(n + 1))
 
-    ax.set_title(values["-GRAPHTITLE-"],
-                 fontdict={"fontsize": int(values["-GRAPHTITLESIZE-"]),
-                           "fontweight": "bold", "fontstyle": values["-GRAPHTITLESTYLE-"]})
-    ax.set_xticks(xtickslist)
-    ax.set_xlabel(values["-HORIZONTITLE-"], labelpad=None,
-                  fontdict={"fontsize": values["-HORIZONTITLESIZE-"], "fontweight": "bold"})
-    ax.set_ylabel(values["-VERTICALTITLE-"], labelpad=None,
-                  fontdict={"fontsize": int(values["-VERTICALTITLESIZE-"]),
-                            "fontweight": "bold"})
-    ax.set_xticklabels(xtickslist, fontsize=int(values["-HORIZONTICKSIZE-"]),
-                       fontweight='bold')
-    plt.setp(ax.get_yticklabels(), fontsize=values["-VERTICALTICKSIZE-"], fontweight="bold")
-
-    plt.xticks(xtickslist, label_x)  # pltで貼付修正
-
-    ax.set_ylim([int(values["-VERTICALRANGEMIN-"]), int(values["-VERTICALRANGEMAX-"])])
-    ax.spines['right'].set(visible=False)
-    ax.spines['top'].set(visible=False)
-    fig.savefig(path / "figure.png", format="png", bbox_inches="tight",
-                dpi='figure')
-
-    N1_S1.return_relative(N1_S1.data_list), N1_S2.return_relative(
-        N1_S1.data_list)
-    wb_data = openpyxl.Workbook()
-    wb_data.create_sheet('figure&statistics', 0)
-    figure_statistics_sheet = wb_data['figure&statistics']
-
-    if int(values["-NUMBERSSAMPLE-"]) == 2:
+    wb_data, figure_statistics_sheet = graph_config() # グラフ共通設定
+# Kinetics_bar統計検定始まり↓
+    if int(values["-NUMBERSSAMPLE-"]) == 2:     #統計検定始まり
         for n in range(int(values["-NUMBERSANALYSIS-"])):
             exec(
                 "t_test(N{0}_S1.return_relative(N1_S1.data_list), N{0}_S2.return_relative(N1_S1.data_list), {0})".format(
                     n + 1))
-
-    if int(values["-NUMBERSSAMPLE-"]) > 2:                  #統計検定始まり
+    if int(values["-NUMBERSSAMPLE-"]) > 2:
         for m in range(int(values["-NUMBERSANALYSIS-"])):
             exec("anova_list{0} = []".format(m + 1))
             exec("combined_all_sample_data{0} = []".format(m + 1))
@@ -1009,13 +975,9 @@ if values["-KINETICSBAR-"] == True:
         for m in range(int(values["-NUMBERSANALYSIS-"])):
             exec("one_way_anova({0},*anova_list{0})".format(m + 1))
             exec("multiple_comparison_test(combined_all_sample_data{0}, sample_names_and_len{0})".format(m + 1))
-    figure = openpyxl.drawing.image.Image(path / "figure.png")
-    figure_statistics_sheet.add_image(figure, 'H1')
-    wb_data.save(path_dir / "{0}.xlsx".format(os.path.basename(values["-NAMEOFFILE-"]).split(".")[-2]))
-    plt.show()
-    exit()
+# Kinetics_line統計検定終わり↑
+    save_and_plot_fig()
 if values["-KINETICSLINE-"] == True:
-    label_x = []
     for n in range(int(values["-NUMBERSANALYSIS-"])):
         exec('label_x.append(values["-XLABEL{0}-"])'.format(n + 1))
     for m in range(int(values["-NUMBERSANALYSIS-"])):
@@ -1060,42 +1022,12 @@ if values["-KINETICSLINE-"] == True:
                 n + 1))
     handles, labels = ax.get_legend_handles_labels()
     handles = [h[0] for h in handles]
-    ax.legend(handles, labels, loc=values["-LEGENDPLACE-"], fontsize=int(values["-LEGENDSIZE-"]), handlelength=2.0,
-              handletextpad=0.1, labelspacing=0.1, ncol=int(values["-LEGENDROWS-"]), bbox_to_anchor=(1, 1),
-              borderpad=0.5, shadow=False, frameon=False)  # legend
-
-    xtickslist = []
     for n in range(int(values["-NUMBERSANALYSIS-"])):
         exec("xtickslist.append({0})".format(n + 1))
 
-    ax.set_title(values["-GRAPHTITLE-"], fontdict={"fontsize": int(values["-GRAPHTITLESIZE-"]),
-                                                   "fontweight": "bold",
-                                                   "fontstyle": values["-GRAPHTITLESTYLE-"]})
-    ax.set_xticks(xtickslist)
-    ax.set_xlabel(values["-HORIZONTITLE-"], labelpad=None, fontdict={"fontsize": values["-HORIZONTITLESIZE-"],
-                                                                     "fontweight": "bold"})
-    ax.set_ylabel(values["-VERTICALTITLE-"], labelpad=None, fontdict={"fontsize": int(values["-VERTICALTITLESIZE-"]),
-                                                                      "fontweight": "bold"})
-    ax.set_xticklabels(xtickslist, fontsize=int(values["-HORIZONTICKSIZE-"]),
-                       fontweight='bold')
-
-    plt.setp(ax.get_yticklabels(), fontsize=values["-VERTICALTICKSIZE-"],
-             fontweight="bold")  # pltで貼付修正
-    plt.xticks(xtickslist, label_x)  # pltで貼付修正
-
-    plt.rcParams["font.family"] = 'Arial'
-    ax.set_ylim(
-        [int(values["-VERTICALRANGEMIN-"]), int(values["-VERTICALRANGEMAX-"])])
-    ax.spines['right'].set(visible=False)
-    ax.spines['top'].set(visible=False)
-    fig.savefig(path / "figure.png", format="png", bbox_inches="tight",
-                dpi='figure')
-
-    wb_data = openpyxl.Workbook()
-    wb_data.create_sheet('figure&statistics', 0)
-    figure_statistics_sheet = wb_data['figure&statistics']
-
-    if int(values["-NUMBERSSAMPLE-"]) == 2:                     #統計検定始まり
+    wb_data, figure_statistics_sheet = graph_config() # グラフ共通設定
+# Kinetics_line統計検定始まり↓
+    if int(values["-NUMBERSSAMPLE-"]) == 2:
         for n in range(int(values["-NUMBERSANALYSIS-"])):
             if values["-EVERYTIME-"] == True:
                 exec(
@@ -1139,9 +1071,6 @@ if values["-KINETICSLINE-"] == True:
         for m in range(int(values["-NUMBERSANALYSIS-"])):
             exec("one_way_anova({0},*anova_list{0})".format(m + 1))
             exec("multiple_comparison_test(combined_all_sample_data{0}, sample_names_and_len{0})".format(m + 1))
-    figure = openpyxl.drawing.image.Image(path / "figure.png")
-    figure_statistics_sheet.add_image(figure, 'H1')
-    wb_data.save(path_dir / "{0}.xlsx".format(os.path.basename(values["-NAMEOFFILE-"]).split(".")[-2]))
-    plt.show()
-    exit()
+# Kinetics_line統計検定終わり↑
+    save_and_plot_fig()
 exit()
