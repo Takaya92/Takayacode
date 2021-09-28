@@ -643,7 +643,7 @@ while True:
             list_sample = ndarray_sample.tolist()
             sample_name_list.extend(list_sample)
         df_new_survival_file['sample'] = sample_name_list
-        exec('path_new_survival_file = path_dir / {0}.csv"'.format(values["-FILENAMESURVIVAL-"]))
+        exec('path_new_survival_file = path_dir / "{0}.csv"'.format(values["-FILENAMESURVIVAL-"]))
         df_new_survival_file.to_csv(path_new_survival_file, index=False, na_rep='')
 
         values_list1 = np.array([int(values["-NUMBERSAMPLETYPES-"]),
@@ -676,7 +676,7 @@ while True:
                 exec('other_sample_list.append("N{0}Sample{1}")'.format(m + 1, n + 1))
         df_new_other_file = pd.DataFrame(columns=other_sample_list)
         df_new_other_file['size'] = range(1, 200 + 1)
-        exec('path_new_other_file = path_dir / {0}.csv"'.format(values["-FILENAMEOTHER-"]))
+        exec('path_new_other_file = path_dir / "{0}.csv"'.format(values["-FILENAMEOTHER-"]))
         df_new_other_file.to_csv(path_new_other_file, index=False,
                                  na_rep='')
 
