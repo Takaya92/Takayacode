@@ -106,28 +106,37 @@ def multiple_comparison_test(combined_all_sample_data, sample_names_and_len):
         exec("figure_statistics_sheet.append(df_tukey.loc[{0}].tolist())".format(n))
     exec("figure_statistics_sheet.append({0})".format(empty_list))
 
+def legend_bar():
+    ax.legend(loc=values["-LEGENDPLACE-"],
+              fontsize=int(values["-LEGENDSIZE-"]),
+              handlelength=0.75, handletextpad=0.1, labelspacing=0.2,
+              borderpad=0.5,
+              ncol=int(values["-LEGENDROWS-"]), bbox_to_anchor=(1, 1),
+              shadow=False,
+              frameon=False)
+
+def legend_kinetics_line():
+    ax.legend(handles, labels, loc=values["-LEGENDPLACE-"],
+              fontsize=int(values["-LEGENDSIZE-"]), handlelength=2.0,
+              handletextpad=0.1, labelspacing=0.1,
+              ncol=int(values["-LEGENDROWS-"]), bbox_to_anchor=(1, 1),
+              borderpad=0.5, shadow=False, frameon=False)
+
+def legend_survival():
+    ax.legend(sample_name_list, loc=values["-LEGENDPLACE-"],
+              fontsize=int(values["-LEGENDSIZE-"]), handlelength=0.8,
+              handletextpad=0.1, labelspacing=0.1,
+              ncol=int(values["-LEGENDROWS-"]),
+              bbox_to_anchor=(1, 1), borderpad=0.5, shadow=False,
+              frameon=False)
+
 def graph_config():
     if values["-SIMPLEBAR-"] == True or values["-KINETICSBAR-"] == True:     # Barグラフ用legend
-        ax.legend(loc=values["-LEGENDPLACE-"],
-                  fontsize=int(values["-LEGENDSIZE-"]),
-                  handlelength=0.75, handletextpad=0.1, labelspacing=0.2,
-                  borderpad=0.5,
-                  ncol=int(values["-LEGENDROWS-"]), bbox_to_anchor=(1, 1),
-                  shadow=False,
-                  frameon=False)
+        legend_bar()
     elif values["-KINETICSLINE-"] == True:  # Kineticsline用legend
-        ax.legend(handles, labels, loc=values["-LEGENDPLACE-"],
-                  fontsize=int(values["-LEGENDSIZE-"]), handlelength=2.0,
-                  handletextpad=0.1, labelspacing=0.1,
-                  ncol=int(values["-LEGENDROWS-"]), bbox_to_anchor=(1, 1),
-                  borderpad=0.5, shadow=False, frameon=False)
+        legend_kinetics_line()
     elif values["-SURVIVAL-"] == True:  # Survival用legend
-        ax.legend(sample_name_list, loc=values["-LEGENDPLACE-"],
-                  fontsize=int(values["-LEGENDSIZE-"]), handlelength=0.8,
-                  handletextpad=0.1, labelspacing=0.1,
-                  ncol=int(values["-LEGENDROWS-"]),
-                  bbox_to_anchor=(1, 1), borderpad=0.5, shadow=False,
-                  frameon=False)
+        legend_survival()
     ax.set_title(values["-GRAPHTITLE-"],
                  fontdict={"fontsize": int(values["-GRAPHTITLESIZE-"]),
                            "fontweight": "bold", "fontstyle": values["-GRAPHTITLESTYLE-"]})
@@ -239,7 +248,7 @@ tab1_frame1_lifespan = sg.Frame("",[
     [sg.Text("")],
     [sg.Text("Name for survival file"), sg.Input(default_text="", key="-FILENAMESURVIVAL-",
                                                  size=(15, 1)), sg.Text(".csv"),
-     sg.Button("CREATE", key="-SURVIVALCREATE-"), sg.Text(":押下時に名前を入れないとエラーになります\n(2バイト文字厳禁)")
+     sg.Button("CREATE", key="-SURVIVALCREATE-"), sg.Text(":押下時に名前を入れないとエラーになります\n(日本語対応済)")
      ],
 ], border_width=1, relief=sg.RELIEF_SUNKEN)
 tab1_frame1_others = sg.Frame("",[
@@ -254,7 +263,7 @@ tab1_frame1_others = sg.Frame("",[
                                                     key="-FILENAMEOTHER-",
                                                     size=(15, 1)),
      sg.Text(".csv"),
-     sg.Button("CREATE", key="-OTHERCREATE-"), sg.Text(":押下時に名前を入れないとエラーになります\n(2バイト文字厳禁)")]
+     sg.Button("CREATE", key="-OTHERCREATE-"), sg.Text(":押下時に名前を入れないとエラーになります\n(日本語対応済)")]
 ], border_width=1, relief=sg.RELIEF_SUNKEN)
 #tab1のフレーム↑
 
@@ -292,6 +301,8 @@ tab2_frame1_title = sg.Frame("",[
               size=(10, 1)), sg.Text(":（normal or italic）")],
 ], border_width=1, relief=sg.RELIEF_SUNKEN)
 tab2_frame2_others = sg.Frame("",[
+    [sg.Checkbox("Use Japanese", default=False, key="-JAPANESE-"),
+     sg.Text(":グラフに日本語文字を使う\n(フォントが変わります)")],
     [sg.Checkbox("Use Row data", default=False, key="-ROWDATA-"),
      sg.Text(":生データを使う(Not for Survival)")],
     [sg.Text("Figure size:("),
@@ -303,7 +314,7 @@ tab2_frame2_others = sg.Frame("",[
      sg.Text(") (横X : 縦Y)")],
     [sg.Text("Numbers of sample types:"),
      sg.Input(default_text=setting_file[1, 17], key="-NUMBERSSAMPLE-",
-              size=(3, 1)), sg.Text(":サンプルの種類数")],
+              size=(3, 1)), sg.Text(":サンプルの種類数")]
 ], border_width=1, relief=sg.RELIEF_SUNKEN)
 tab2_frame3_horizon = sg.Frame("",[
     [sg.Text("Horizon title:"),
@@ -644,7 +655,7 @@ while True:
             sample_name_list.extend(list_sample)
         df_new_survival_file['sample'] = sample_name_list
         exec('path_new_survival_file = path_dir / "{0}.csv"'.format(values["-FILENAMESURVIVAL-"]))
-        df_new_survival_file.to_csv(path_new_survival_file, index=False, na_rep='')
+        df_new_survival_file.to_csv(path_new_survival_file, index=False, na_rep='', encoding="shift_jis")
 
         values_list1 = np.array([int(values["-NUMBERSAMPLETYPES-"]),
                                  int(values["-NUMBERSAMPLESIZE-"]),
@@ -666,7 +677,7 @@ while True:
         delete_file_file = np.delete(file_file, 1, 0)
         file_new = np.block([[delete_file_file], [values_list1]])
         df_file = pd.DataFrame(data=file_new)
-        df_file.to_csv(path_file, index=False, header=False)
+        df_file.to_csv(path_file, index=False, header=False, encoding="shift_jis")
         continue
     if event == "-OTHERCREATE-":
         other_sample_list = []
@@ -678,7 +689,7 @@ while True:
         df_new_other_file['size'] = range(1, 200 + 1)
         exec('path_new_other_file = path_dir / "{0}.csv"'.format(values["-FILENAMEOTHER-"]))
         df_new_other_file.to_csv(path_new_other_file, index=False,
-                                 na_rep='')
+                                 na_rep='', encoding="shift_jis")
 
         values_list1 = np.array([int(values["-NUMBERSAMPLETYPES-"]),
                                  int(values["-NUMBERSAMPLESIZE-"]),
@@ -700,7 +711,7 @@ while True:
         delete_file_file = np.delete(file_file, 1, 0)
         file_new = np.block([[delete_file_file], [values_list1]])
         df_file = pd.DataFrame(data=file_new)
-        df_file.to_csv(path_file, index=False, header=False)
+        df_file.to_csv(path_file, index=False, header=False, encoding="shift_jis")
         continue
     if event == "-HOWDESIGNFILE-":
         img = Image.open(path / "File_design.png")
@@ -786,16 +797,18 @@ while True:
         delete_setting_file = np.delete(setting_file, 1, 0)
         setting_new = np.block([[delete_setting_file], [values_list2]])
         df_setting = pd.DataFrame(data=setting_new)
-        df_setting.to_csv(path_setting, index=False, header=False, na_rep='NULL')
+        df_setting.to_csv(path_setting, index=False, header=False, na_rep='NULL', encoding="shift_jis")
 
         delete_sample_file = np.delete(sample_file, 1, 0)
         sample_new = np.block([[delete_sample_file], [values_list3]])
         df_sample = pd.DataFrame(data=sample_new)
-        df_sample.to_csv(path_sample, index=False, header=False, na_rep='NULL')
+        df_sample.to_csv(path_sample, index=False, header=False, na_rep='NULL', encoding="shift_jis")
 
         break
 
 # ↑↑↑↑↑↑↑↑PysimpleGUI"ここまで", Figure"共通設定ここから"↓↓↓↓↓↓↓↓#
+if values["-JAPANESE-"] == True:
+    import japanize_matplotlib
 fig = plt.figure(
     figsize=(int(values["-FIGURESIZEX-"]), int(values["-FIGURESIZEY-"])),
     dpi=240, constrained_layout=True)
