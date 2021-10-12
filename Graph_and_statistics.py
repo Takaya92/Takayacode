@@ -250,8 +250,11 @@ def update_value_tab3(new_id,new_value):
     conn.commit()
     cur.close()
     conn.close()
-# ↑↑↑↑↑↑↑↑設定DB↑↑↑↑↑↑↑↑ #
 
+
+
+
+# ↑↑↑↑↑↑↑↑設定DB↑↑↑↑↑↑↑↑ #
 
 # ↑↑↑↑↑↑↑↑class,def"ここまで,PysimpleGUI"ここから"↓↓↓↓↓↓↓↓#
 sg.theme("Darkblue12")
@@ -296,7 +299,7 @@ tab1_layout = [
 
 #tab2のフレーム↓
 tab2_frame00_file = sg.Frame("",[
-    [sg.FileBrowse("Select", key="-FILENAME-", target="-NAMEOFFILE-"),
+    [sg.FileBrowse("Select", key="-FILENAME-", target="-NAMEOFFILE-", button_color=("white", "blue")),
      sg.Input(default_text=call_value_tab2(0), size=(75, 1),
               key="-NAMEOFFILE-")],
 ], border_width=1, relief=sg.RELIEF_FLAT)
@@ -308,7 +311,7 @@ tab2_frame1_title = sg.Frame("",[
      sg.Input(default_text=call_value_tab2(2), key="-GRAPHTITLESIZE-",
               size=(2, 1))],
     [sg.Text("Graph title style:"),
-     sg.Input(default_text=call_value_tab2(3), key="-GRAPHTITLESTYLE-",
+     sg.Input(default_text="normal", key="-GRAPHTITLESTYLE-",
               size=(10, 1)), sg.Text(":（normal or italic）")],
 ], border_width=1, relief=sg.RELIEF_SUNKEN)
 tab2_frame2_others = sg.Frame("",[
@@ -328,7 +331,7 @@ tab2_frame2_others = sg.Frame("",[
               size=(3, 1)), sg.Text(":サンプルの種類数")]
 ], border_width=1, relief=sg.RELIEF_SUNKEN)
 tab2_sample_design = sg.Frame("",[[sg.Button("SAMPLE DESIGN\n& ANALYSIS", key="-SAMPLEDESIGN-", button_color=("white", "blue"),size=(14,3))
-]], border_width=1, relief=sg.RELIEF_SUNKEN)
+]], border_width=1, relief=sg.RELIEF_FLAT)
 tab2_frame3_horizon = sg.Frame("",[
     [sg.Text("Horizon title:"),
      sg.Input(default_text=call_value_tab2(4), key="-HORIZONTITLE-",
@@ -386,20 +389,16 @@ tab2_layout = [
     [sg.Text("Select your file:\nファイルを選択する"), tab2_frame00_file],
     [sg.Text("")],
     [sg.Text("#Graph title:\nタイトル"), tab2_frame1_title, sg.Text("#Others:\nその他"),
-     tab2_frame2_others,tab2_sample_design],
+     tab2_frame2_others],
     [sg.Text("#Horizon:    \n横軸"), tab2_frame3_horizon, sg.Text("  #Vertical:\n  縦軸"),
      tab2_frame4_vertical],
     [sg.Text("#Legend:    \n凡例"), tab2_frame5_legend],
-    [sg.Text("#Options for\n kinetics:\nKinetics用"), tab2_frame6_kinetics],
+    [sg.Text("#Options for\n kinetics:\nKinetics用"), tab2_frame6_kinetics,sg.Text("                      "),tab2_sample_design],
 ]
-
 
 layout = [
     [sg.TabGroup([[sg.Tab("File design", tab1_layout), sg.Tab("Graph design", tab2_layout)]])],
 ]
-
-
-
 window = sg.Window("Graph and Statistics", layout, resizable=True)
 
 while True:
@@ -407,10 +406,10 @@ while True:
     if event == sg.WIN_CLOSED:
         exit()
     if event == "-SAMPLESURVIVAL-":
-        if int(values["-NUMBERSAMPLETYPES-"]) % 4 == 0:
-            numbers_row = int(int(values["-NUMBERSAMPLETYPES-"]) / 4)
+        if int(values["-NUMBERSAMPLETYPES-"]) % 5 == 0:
+            num_row = int(int(values["-NUMBERSAMPLETYPES-"]) / 5)
         else:
-            numbers_row = int(values["-NUMBERSAMPLETYPES-"]) // 4 + 1
+            num_row = int(values["-NUMBERSAMPLETYPES-"]) // 5 + 1
         #エラーを防ぐために毎回layoutを定義する
         values_list1 = [
             int(values["-NUMBERSAMPLETYPES-"]),
@@ -418,9 +417,9 @@ while True:
             int(values["-NUMBERANALYSIS2-"]),
             int(values["-NUMBERSAMPLETYPES2-"])
         ]
-        for list_len in range(len(values_list1)):
-            update_value_tab1(list_len,values_list1[list_len])
-        survival_layout = [[sg.Text("")],
+
+        """
+        [sg.Text("")],
         [[sg.Text(f"{1 + 4 * row:03}:"),
           sg.Input(default_text=call_value_tab1(4 + 4 * row),
                    key=f"-SAMPLE{1 + 4 * row}-",
@@ -438,14 +437,51 @@ while True:
                    key=f"-SAMPLE{4 + 4 * row}-",
                    size=(10, 1))] for row in
          range(numbers_row)],
-         [sg.Text("")],
-         [sg.Text("Name for survival file"),
+
+        """
+        for list_len in range(len(values_list1)):
+            update_value_tab1(list_len,values_list1[list_len])
+
+        if num_row == 1:
+            num_column = int(values["-NUMBERSAMPLETYPES-"])
+            row_frame_column = [sg.Frame("",[[sg.Text(f"{column+1:03}"), sg.Input(default_text=call_value_tab1(column + 4),
+                                                   key=f"-SAMPLE{column+1}-",
+                                                   size=(10, 1))]], border_width=1, relief=sg.RELIEF_FLAT) for column in
+                                              range(num_column)]
+            survival_layout = row_frame_column
+        else:
+            row_frame_column = [[sg.Frame("",[[sg.Text(f"{1+row*5:03}"),
+                        sg.Input(default_text=call_value_tab1(row*5 + 4),
+                                 key=f"-SAMPLE{1+row*5}-",
+                                 size=(10, 1)),
+                        sg.Text(f"{2 + row * 5:03}"),
+                        sg.Input(default_text=call_value_tab1(row * 5 + 5),
+                                 key=f"-SAMPLE{2 + row * 5}-",
+                                 size=(10, 1)),
+                        sg.Text(f"{3 + row * 5:03}"),
+                        sg.Input(default_text=call_value_tab1(row * 5 + 6),
+                                 key=f"-SAMPLE{3 + row * 5}-",
+                                 size=(10, 1)),
+                        sg.Text(f"{4 + row * 5:03}"),
+                        sg.Input(default_text=call_value_tab1(row * 5 + 7),
+                                 key=f"-SAMPLE{4 + row * 5}-",
+                                 size=(10, 1)),
+                        sg.Text(f"{5 + row * 5:03}"),
+                        sg.Input(default_text=call_value_tab1(row * 5 + 8),
+                                 key=f"-SAMPLE{5 + row * 5}-",
+                                 size=(10, 1))]], border_width=1, relief=sg.RELIEF_FLAT)] for row in
+                                              range(num_row)]
+            survival_layout = [sg.Column(row_frame_column, scrollable=True,
+                                         vertical_scroll_only=True,
+                                         size=(700, 200))]
+
+        survival_input_column = [sg.Text("Name for survival file"),
           sg.Input(default_text="", key="-FILENAMESURVIVAL-",
                   size=(15, 1)), sg.Text(".csv"),
           sg.Button("CREATE", key="-SURVIVALCREATE-", button_color=("white", "blue")),
-          sg.Text(":押下時に名前を入れないとエラーになります\n(日本語対応済)")
-]]
-        survival_window = sg.Window('Survival sample information', layout=survival_layout)
+          sg.Text(":押下時に名前を入れないとエラーになります\n(日本語対応済)")]
+
+        survival_window = sg.Window('Survival sample information', layout=[survival_layout,survival_input_column])
         while True: #寿命シート作成popupのwindow用
             survival_event, survival_values = survival_window.read()
             if survival_event == sg.WIN_CLOSED:
@@ -500,6 +536,7 @@ while True:
         img.show()
         continue
     if event =="-OUTPUTRESULTS-":
+        sg.popup_scrolled()
         img = Image.open(path / "Results.png")
         img.show()
         continue
@@ -553,7 +590,8 @@ while True:
             [sg.Text("")],
             [sg.Text("Select analysis:\n解析項目"), tab3_frame0_analysis],
             [sg.Text("")],
-            [sg.Text("Sample information"),tab3_table1],
+            [sg.Text("Sample information")],
+            [tab3_table1],
             [sg.Button("START", key="-START-", button_color=("white", "blue")),
              sg.Text("Start analysis     ", key="-SELECT-")]
         ]]
@@ -618,7 +656,8 @@ while True:
                 break
     if start == False:
         continue
-    break
+    else:
+        break
 
 
 
