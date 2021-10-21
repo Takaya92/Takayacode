@@ -51,10 +51,16 @@ class SampleInfo:
     def simple_bar_cal(self, adjust_data):
         if values["-ROWDATA-"]==True:
             simple_bar_relative = np.mean(self.data_list)
-            simple_bar_sem = np.std(self.data_list) / np.sqrt(len(self.data_list))
+            if values["SD"]==True:  # standard deviation
+                simple_bar_sem = np.std(self.data_list)
+            else:   # standard error
+                simple_bar_sem = np.std(self.data_list) / np.sqrt(len(self.data_list))
         else:
             simple_bar_relative = np.mean(self.data_list) / np.mean(adjust_data) * 100
-            simple_bar_sem = np.std(self.data_list) / np.sqrt(
+            if values["SD"]==True:  # standard deviation
+                simple_bar_sem = np.std(self.data_list) / np.mean(adjust_data) * 100  # adjust_data=引数で補正and標準誤差SEM
+            else:   # standard error
+                simple_bar_sem = np.std(self.data_list) / np.sqrt(
                 len(self.data_list)) / np.mean(adjust_data) * 100  # adjust_data=引数で補正and標準誤差SEM
         ax.bar(self.name, simple_bar_relative, edgecolor="k", color=self.color, align="center", label=self.name,
                    yerr=simple_bar_sem, ecolor="k", capsize=2, hatch=self.style)
@@ -69,9 +75,17 @@ class SampleInfo:
 
     def multi_bar_cal_sem(self, adjust_data):
         if values["-ROWDATA-"] == True:
-            multi_bar_sem = np.std(self.data_list) / np.sqrt(len(self.data_list))
+            if values["SD"] == True:  # standard deviation
+                multi_bar_sem = np.std(self.data_list)
+            else:   # standard error
+                multi_bar_sem = np.std(self.data_list) / np.sqrt(
+                    len(self.data_list))
         else:
-            multi_bar_sem = np.std(self.data_list) / np.sqrt(
+            if values["SD"] == True:  # standard deviation
+                multi_bar_sem = np.std(self.data_list) / np.mean(
+                    adjust_data) * 100  # adjust_data=引数で補正and標準誤差SEM
+            else:   # standard error
+                multi_bar_sem = np.std(self.data_list) / np.sqrt(
                 len(self.data_list)) / np.mean(adjust_data) * 100  # adjust_data=引数で補正and標準誤差SEM
         return multi_bar_sem
 
@@ -319,6 +333,7 @@ tab2_frame2_others = sg.Frame("",[
      sg.Text(":グラフに日本語文字を使う\n(フォントが変わります)")],
     [sg.Checkbox("Use Row data", default=False, key="-ROWDATA-"),
      sg.Text(":生データを使う(Not for Survival)")],
+    [sg.Radio("SD (標準偏差)", default=False, key="-SD-", group_id="SD_SEM"),sg.Radio("SEM (標準誤差)", default=True, key="-SEM-", group_id="SD_SEM")],
     [sg.Text("Figure size:("),
      sg.Input(default_text=call_value_tab2(15), key="-FIGURESIZEX-",
               size=(2, 1)),
