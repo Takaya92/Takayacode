@@ -12,6 +12,8 @@ from lifelines.statistics import logrank_test
 from PIL import Image
 import openpyxl
 import os
+import sys
+import subprocess
 
 path = Path.cwd()
 path_dir = Path(path / "data&result")
@@ -51,13 +53,13 @@ class SampleInfo:
     def simple_bar_cal(self, adjust_data):
         if values["-ROWDATA-"]==True:
             simple_bar_relative = np.mean(self.data_list)
-            if values["SD"]==True:  # standard deviation
+            if values["-SD-"]==True:  # standard deviation
                 simple_bar_sem = np.std(self.data_list)
             else:   # standard error
                 simple_bar_sem = np.std(self.data_list) / np.sqrt(len(self.data_list))
         else:
             simple_bar_relative = np.mean(self.data_list) / np.mean(adjust_data) * 100
-            if values["SD"]==True:  # standard deviation
+            if values["-SD-"]==True:  # standard deviation
                 simple_bar_sem = np.std(self.data_list) / np.mean(adjust_data) * 100  # adjust_data=引数で補正and標準誤差SEM
             else:   # standard error
                 simple_bar_sem = np.std(self.data_list) / np.sqrt(
@@ -75,13 +77,13 @@ class SampleInfo:
 
     def multi_bar_cal_sem(self, adjust_data):
         if values["-ROWDATA-"] == True:
-            if values["SD"] == True:  # standard deviation
+            if values["-SD-"] == True:  # standard deviation
                 multi_bar_sem = np.std(self.data_list)
             else:   # standard error
                 multi_bar_sem = np.std(self.data_list) / np.sqrt(
                     len(self.data_list))
         else:
-            if values["SD"] == True:  # standard deviation
+            if values["-SD-"] == True:  # standard deviation
                 multi_bar_sem = np.std(self.data_list) / np.mean(
                     adjust_data) * 100  # adjust_data=引数で補正and標準誤差SEM
             else:   # standard error
@@ -179,8 +181,9 @@ def graph_config():
 def save_and_plot_fig():
     figure = openpyxl.drawing.image.Image(path / "figure.png")
     figure_statistics_sheet.add_image(figure, 'H1')
-    wb_data.save(path_dir / "{0}.xlsx".format(os.path.basename(values["-NAMEOFFILE-"]).split(".")[-2]))
-    plt.show()
+    file_path = path_dir / f'{os.path.basename(values["-NAMEOFFILE-"]).split(".")[-2]}.xlsx'
+    wb_data.save(file_path)
+    subprocess.Popen(["open", file_path])
     exit()
 
 # ↓↓↓↓↓↓↓↓設定DB↓↓↓↓↓↓↓↓ #
@@ -667,8 +670,8 @@ while True:
                     values_list3.extend([sample_design_values[f"-SAMPLENAME{sample+1}-"], sample_design_values[f"-SAMPLECOLOR{sample+1}-"], sample_design_values[f"-SAMPLESTYLE{sample+1}-"], sample_design_values[f"-SAMPLEMARKER{sample+1}-"]])
                 for list_len in range(len(values_list3)):
                     update_value_tab3(list_len, values_list3[list_len])
-                sample_design_window.close()
                 break
+        sample_design_window.close()
     if start == False:
         continue
     else:
@@ -734,7 +737,7 @@ if sample_design_values["-SURVIVAL-"] == True:
 # Survival統計検定終わり↑
     save_and_plot_fig()
 # ↑↑↑↑↑↑↑↑Survival"ここまで", Simplebar,Kineticsここから"↓↓↓↓↓↓↓↓#
-if  sample_design_values["-SIMPLEBAR-"] == True:
+if sample_design_values["-SIMPLEBAR-"] == True:
     for n in range(int(values["-NUMBERSSAMPLE-"])):
         exec(
             'N1_S{0} = SampleInfo(sample_design_values["-SAMPLENAME{0}-"], sample_design_values["-SAMPLECOLOR{0}-"],'
@@ -754,7 +757,7 @@ if  sample_design_values["-SIMPLEBAR-"] == True:
             exec('anova_list.append(N1_S{0}.return_relative(N1_S1.data_list))'.format(n + 1))
             exec('np_data{0} = np.array(N1_S{0}.return_relative(N1_S1.data_list))'.format(n + 1))
             exec('combined_all_sample_data = np.concatenate([combined_all_sample_data, np_data{0}])'.format(n + 1))
-            exec('name_and_len{0} = np.repeat(values["-SAMPLENAME{0}-"], len(np_data{0}))'.format(n + 1))
+            exec('name_and_len{0} = np.repeat(sample_design_values["-SAMPLENAME{0}-"], len(np_data{0}))'.format(n + 1))
             exec('sample_names_and_len = np.concatenate([sample_names_and_len, name_and_len{0}])'.format(n + 1))
         one_way_anova(1, *anova_list)
         multiple_comparison_test(combined_all_sample_data, sample_names_and_len)
@@ -851,7 +854,7 @@ if sample_design_values["-KINETICSBAR-"] == True:
                             m + 1, n + 1))
                 exec('combined_all_sample_data{0} = np.concatenate([combined_all_sample_data{0}, np_data{1}])'.format(
                     m + 1, n + 1))
-                exec('name_and_len{1} = np.repeat(values["-SAMPLENAME{1}-"], len(np_data{1}))'.format(m + 1, n + 1))
+                exec('name_and_len{1} = np.repeat(sample_design_values["-SAMPLENAME{1}-"], len(np_data{1}))'.format(m + 1, n + 1))
                 exec(
                     'sample_names_and_len{0} = np.concatenate([sample_names_and_len{0}, name_and_len{1}])'.format(m + 1,
                                                                                                                   n + 1))
@@ -956,4 +959,3 @@ if sample_design_values["-KINETICSLINE-"] == True:
             exec("multiple_comparison_test(combined_all_sample_data{0}, sample_names_and_len{0})".format(m + 1))
 # Kinetics_line統計検定終わり↑
     save_and_plot_fig()
-exit()
