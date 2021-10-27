@@ -12,8 +12,6 @@ from lifelines.statistics import logrank_test
 from PIL import Image
 import openpyxl
 import os
-import sys
-import subprocess
 
 path = Path.cwd()
 path_dir = Path(path / "data&result")
@@ -183,7 +181,7 @@ def save_and_plot_fig():
     figure_statistics_sheet.add_image(figure, 'H1')
     file_path = path_dir / f'{os.path.basename(values["-NAMEOFFILE-"]).split(".")[-2]}.xlsx'
     wb_data.save(file_path)
-    subprocess.Popen(["open", file_path])
+    plt.show()
     exit()
 
 # ↓↓↓↓↓↓↓↓設定DB↓↓↓↓↓↓↓↓ #
