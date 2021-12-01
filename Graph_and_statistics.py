@@ -179,7 +179,7 @@ def graph_config():
 def save_and_plot_fig():
     figure = openpyxl.drawing.image.Image(path / "figure.png")
     figure_statistics_sheet.add_image(figure, 'H1')
-    file_path = path_dir / f'{os.path.basename(values["-NAMEOFFILE-"]).split(".")[-2]}.xlsx'
+    file_path = path_dir / f'{os.path.basename(values["-NAMEOFFILE-"]).split(".")[-2]}_result.xlsx'
     wb_data.save(file_path)
     plt.show()
     exit()
